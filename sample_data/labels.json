@@ -1,0 +1,45 @@
+{
+  "_note": "三份虚构演示合同的金标标签：每份合同的条款序号 → 正确类别；expected_findings 为人工判定的应检出风险规则。用于计算抽取分类准确率与风险检出率。",
+  "contracts": {
+    "contracts/sample_contract.txt": {
+      "clause_categories": {
+        "1": "parties",
+        "2": "price",
+        "3": "delivery",
+        "4": "confidentiality",
+        "5": "liability",
+        "6": "term_termination",
+        "7": "dispute",
+        "8": "misc"
+      },
+      "expected_findings": ["VAGUE_JURISDICTION"]
+    },
+    "sample_data/contract_b.txt": {
+      "clause_categories": {
+        "1": "parties",
+        "2": "price",
+        "3": "delivery",
+        "4": "confidentiality",
+        "5": "term_termination",
+        "6": "dispute",
+        "7": "misc"
+      },
+      "expected_findings": ["MISSING_LIABILITY", "ONE_SIDE_RELEASE", "VAGUE_JURISDICTION"]
+    },
+    "sample_data/contract_c.txt": {
+      "clause_categories": {
+        "1": "parties",
+        "2": "price",
+        "3": "delivery",
+        "4": "ip",
+        "5": "confidentiality",
+        "6": "force_majeure",
+        "7": "liability",
+        "8": "notice",
+        "9": "dispute",
+        "10": "term_termination"
+      },
+      "expected_findings": []
+    }
+  }
+}
