@@ -1,70 +1,78 @@
-# clause-scope · 合同条款抽取与风险提示
+English · [简体中文](./README.zh-CN.md)
 
-> **English TL;DR** — A deterministic rule engine for the first step of contract review: clause segmentation & classification, span-level evidence linking back to the source text, and three tiers of risk findings (missing clauses / one-sided obligations / vague terms) — fully explainable, testable, reproducible, no LLM involved. 18 unit tests; reproducible evaluation on labeled sample contracts in [docs/eval_report.md](docs/eval_report.md).
+# clause-scope · Deterministic Clause Extraction & Risk Flagging
 
-把合同全文变成「条款清单 + 风险发现」，每条结果都能**回跳原文**。v0.1 为**确定性规则引擎**——每一条分类与风险判定都可解释、可测试、可复现，不调用任何 LLM。
+Turn a full contract text into a **clause inventory + risk findings**, with every result **traceable back to the source text**. v0.1 is a **deterministic rule engine** — every classification and risk finding is explainable, testable, and reproducible, with **no LLM involved**.
 
-**当前版本 v0.1：规则引擎 + 虚构标注样例评测。真实合同语料评测在路线图上，不在当前宣称范围内。**
+**Current version v0.1: rule engine + evaluation on fictional labeled samples. Evaluation on a real-contract corpus is on the roadmap and outside the current claims.**
 
-## 问题
+## The problem
 
-合同审查的第一步不是「给建议」，而是搞清楚「这份合同里有什么、缺什么」：
+The first step of contract review is not "giving advice" — it is establishing **what the contract contains, and what it is missing**:
 
-- 8+ 类关键条款（价款、交付、保密、违约责任、争议解决…）分别在第几条、原文是什么；
-- **必备条款缺失**（没有违约责任条款的合同，风险不需要懂法也能感到）；
-- **权利失衡**（解除权/违约金只约束一方）与**表述含糊**（「有管辖权的人民法院」却没锁定连接点）；
-- 每条风险发现必须带原文依据或「缺失」标注——**没有依据的提示不输出**。
+- Which clause number each of the 8+ key clause types (price, delivery, confidentiality, liability for breach, dispute resolution, …) sits at, and what the original text says;
+- **Missing mandatory clauses** (a contract without a liability-for-breach clause carries a risk anyone can sense, legal training or not);
+- **Rights imbalance** (termination / liquidated-damages clauses binding only one party) and **vague wording** (e.g. "the people's court with jurisdiction" without locking down the connecting point);
+- Every risk finding must carry source-text evidence or an explicit "missing" tag — **flags without evidence are not emitted**.
 
-## 边界（先说清不做什么）
+## Scope (what this deliberately does not do)
 
-- **规则引擎不是 LLM**：分类靠标题强信号 + 正文关键词计票，复杂表述（如用「赔偿损失」替代「违约责任」标题的隐性条款）可能漏判。LLM 辅助分类属 v0.2，接口已预留（`classify_llm`）。
-- **样例是虚构的**：当前评测基于 3 份完全虚构的标注合同（25 条款），仅验证规则行为；真实合同 ≥30 份、字段准确率 ≥85% 的验收门在语料到位前**不预填数字**。
-- **不构成法律意见**：输出是核查辅助清单，人工判断不可省。
+- **A rule engine is not an LLM**: classification relies on strong title signals plus body keyword voting; complex phrasing (e.g. an implicit liability clause titled "compensation for losses" standing in for "liability for breach") may be missed. LLM-assisted classification belongs to v0.2; the interface is already reserved (`classify_llm`).
+- **The samples are fictional**: the current evaluation is based on 3 fully fictional labeled contracts (25 clauses) and validates rule behavior only. The acceptance gate for real contracts (≥30 contracts, field accuracy ≥85%) will **not be pre-filled with numbers** before the corpus is in place.
+- **Not legal advice**: the output is an auxiliary checklist for verification; human judgment cannot be skipped.
 
-## 机制
+## How it works
 
 ```
-合同全文 ──extractor──> 条款清单（编号切分 + 分类 + span 偏移）
-              │            · 标题模式 = 强信号（直接归类）
-              │            · 正文全类别计票 ≥2 = 弱信号
-              │            · 无编号结构 → 整文单条款兜底（不静默丢内容）
-              ▼
-        risk_rules（三级发现，按严重度排序）
-        ├── MISSING   必备类别缺失（违约责任=P0）
-        ├── IMBALANCE 解除权仅授予一方 / 违约金单向约束
-        └── VAGUE     管辖未锁定连接点等
-              ▼
-        report（Markdown / JSON，发现附原文摘录回跳）
+Contract text ──extractor──> clause inventory (numbered segmentation + classification + span offsets)
+                   │           · Title pattern = strong signal (direct classification)
+                   │           · Body-wide voting across all categories, ≥2 = weak signal
+                   │           · No numbered structure → whole-document single-clause fallback (content is never silently dropped)
+                   ▼
+             risk_rules (three tiers of findings, sorted by severity)
+             ├── MISSING   mandatory category absent (liability for breach = P0)
+             ├── IMBALANCE termination right granted to one side only / one-way liquidated damages
+             └── VAGUE     jurisdiction without a locked connecting point, etc.
+                   ▼
+             report (Markdown / JSON, each finding carries a source excerpt for back-reference)
 ```
 
-关键设计决策：
+Key design decisions:
 
-- **span 回跳是硬约束**：抽取层所有输出带原始文本偏移，报告层每条发现同时输出原文摘录；
-- **跨条款统计解除权**：「乙方可任意解除…无需甲方同意」这种文本双方都出现的条款，按「谁被授予解除权、另一方有无对等权利」判断，而不是数出现了几方。
+- **Span back-referencing is a hard constraint**: all extractor output carries original-text offsets, and the report layer emits the source excerpt alongside every finding;
+- **Termination rights are assessed across clauses**: for text such as "Party B may terminate at any time … without Party A's consent", where both parties appear inside one clause, the judgment is based on who is granted the termination right and whether the other side holds a symmetric right — not on counting how many parties are mentioned.
 
-## 验证（真实数字，非虚构；样本为虚构合同）
+## Install & usage
 
-| 指标 | 结果 |
-|---|---|
-| 条款分类准确率 | 100.0%（25/25） |
-| span 回跳有效率 | 100.0%（25/25） |
-| 风险检出率（召回） | 100.0%（4/4） |
-| 风险提示精确率 | **80.0%（4/5）** |
-
-- 精确率未满的**已知假阳性来源**：条件解除权（如「甲方有权解除」）会被计为单方解除——「有权解除（附条件）」与「任意解除」的细分属 v0.2，规则与报告均已注明
-- 复现：`python scripts/run_eval.py`（金标：`sample_data/labels.json`；报告：`docs/eval_report.md`）
-- 单元测试 18 例：`python -m unittest discover -s tests`
-- 演示：
+- **Dependencies**: Python 3 only — the v0.1 rule engine uses nothing beyond the Python standard library (zero third-party dependencies, see `requirements.txt`). Tests verified on Python 3.13.
+- **Analyze a contract** (writes a Markdown + JSON report):
 
 ```bash
 python scripts/analyze.py contracts/sample_contract.txt --out data/report
 # 条款：8 ｜ 发现：2（P0 0 / P1 1 / P2 1）
+# (Clauses: 8 | Findings: 2 (P0 0 / P1 1 / P2 1))
 ```
+
+- **Reproduce the evaluation**: `python scripts/run_eval.py` (gold labels: `sample_data/labels.json`; report: `docs/eval_report.md`)
+- **Run the unit tests** (18 cases): `python -m unittest discover -s tests`
+
+## Evaluation (real numbers, not fabricated; the samples are fictional contracts)
+
+| Metric | Result |
+|---|---|
+| Clause classification accuracy | 100.0% (25/25) |
+| Span traceability validity | 100.0% (25/25) |
+| Risk detection rate (recall) | 100.0% (4/4) |
+| Risk-flagging precision | **80.0% (4/5)** |
+
+Full evaluation report with per-sample results: [docs/eval_report.md](docs/eval_report.md).
+
+- The **known source of false positives** behind the sub-perfect precision: conditional termination rights (e.g. "Party A may terminate") are counted as one-sided termination; the finer distinction between "termination with conditions" and "termination at will" belongs to v0.2 — noted in both the rules and the report.
 
 ## Roadmap
 
-- **v0.2**：LLM 辅助分类（规则结果作先验，低置信条款交模型复核）+ 条件解除/任意解除细分规则 + 真实合同标注评测（≥30 份）
-- **v0.3**：与 [statute-rag](https://github.com/1438388098-glitch/statute-rag) 串联——风险点自动供给「法条依据」检索；偏好库（己方立场条款基线）比对
+- **v0.2**: LLM-assisted classification (rule results serve as the prior; low-confidence clauses go to the model for review) + finer rules separating conditional from at-will termination + labeled evaluation on real contracts (≥30 contracts)
+- **v0.3**: chain with [statute-rag](https://github.com/1438388098-glitch/statute-rag) — risk findings automatically feed "statutory basis" retrieval; preference-library comparison (baselines for own-side-position clauses)
 
 ## License
 
