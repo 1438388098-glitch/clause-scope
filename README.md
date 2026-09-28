@@ -17,7 +17,7 @@ The first step of contract review is not "giving advice" — it is establishing 
 
 ## Scope (what this deliberately does not do)
 
-- **A rule engine is not an LLM**: classification relies on strong title signals plus body keyword voting; complex phrasing (e.g. an implicit liability clause titled "compensation for losses" standing in for "liability for breach") may be missed. LLM-assisted classification belongs to v0.2; the interface is already reserved (`classify_llm`).
+- **A rule engine is not an LLM**: classification relies on strong title signals plus body keyword voting; complex phrasing (e.g. an implicit liability clause titled "compensation for losses" standing in for "liability for breach") may be missed. LLM-assisted classification belongs to v0.2; the interface stub is now in place (`clause_scope/llm_bridge.py`: injected `classify_fn`, LLM only fills rule fallbacks, spans are immutable, every output must carry a rationale — locked by 6 contract tests).
 - **The samples are fictional**: the current evaluation is based on 3 fully fictional labeled contracts (25 clauses) and validates rule behavior only. The acceptance gate for real contracts (≥30 contracts, field accuracy ≥85%) will **not be pre-filled with numbers** before the corpus is in place.
 - **Not legal advice**: the output is an auxiliary checklist for verification; human judgment cannot be skipped.
 
@@ -71,7 +71,7 @@ Full evaluation report with per-sample results: [docs/eval_report.md](docs/eval_
 
 ## Roadmap
 
-- **v0.2**: LLM-assisted classification (rule results serve as the prior; low-confidence clauses go to the model for review) + finer rules separating conditional from at-will termination + labeled evaluation on real contracts (≥30 contracts)
+- **v0.2**: LLM-assisted classification (stub ready: `llm_bridge.classify_llm` + `llm_assisted_extract`; a real-model adapter pending) + finer rules separating conditional from at-will termination + labeled evaluation on real contracts (≥30 contracts)
 - **v0.3**: chain with [statute-rag](https://github.com/1438388098-glitch/statute-rag) — risk findings automatically feed "statutory basis" retrieval; preference-library comparison (baselines for own-side-position clauses)
 
 ## License
