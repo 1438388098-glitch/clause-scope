@@ -1,5 +1,7 @@
 English · [简体中文](./README.zh-CN.md)
 
+[![CI](https://github.com/1438388098-glitch/clause-scope/actions/workflows/ci.yml/badge.svg)](https://github.com/1438388098-glitch/clause-scope/actions/workflows/ci.yml)
+
 # clause-scope · Deterministic Clause Extraction & Risk Flagging
 
 Turn a full contract text into a **clause inventory + risk findings**, with every result **traceable back to the source text**. v0.1 is a **deterministic rule engine** — every classification and risk finding is explainable, testable, and reproducible, with **no LLM involved**.

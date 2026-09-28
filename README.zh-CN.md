@@ -1,5 +1,7 @@
 [English](./README.md) · 简体中文
 
+[![CI](https://github.com/1438388098-glitch/clause-scope/actions/workflows/ci.yml/badge.svg)](https://github.com/1438388098-glitch/clause-scope/actions/workflows/ci.yml)
+
 # clause-scope · 合同条款抽取与风险提示
 
 把合同全文变成「条款清单 + 风险发现」，每条结果都能**回跳原文**。v0.1 为**确定性规则引擎**——每一条分类与风险判定都可解释、可测试、可复现，不调用任何 LLM。
