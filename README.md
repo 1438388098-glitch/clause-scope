@@ -1,5 +1,7 @@
 # clause-scope · 合同条款抽取与风险提示
 
+> **English TL;DR** — A deterministic rule engine for the first step of contract review: clause segmentation & classification, span-level evidence linking back to the source text, and three tiers of risk findings (missing clauses / one-sided obligations / vague terms) — fully explainable, testable, reproducible, no LLM involved. 18 unit tests; reproducible evaluation on labeled sample contracts in [docs/eval_report.md](docs/eval_report.md).
+
 把合同全文变成「条款清单 + 风险发现」，每条结果都能**回跳原文**。v0.1 为**确定性规则引擎**——每一条分类与风险判定都可解释、可测试、可复现，不调用任何 LLM。
 
 **当前版本 v0.1：规则引擎 + 虚构标注样例评测。真实合同语料评测在路线图上，不在当前宣称范围内。**
