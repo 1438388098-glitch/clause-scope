@@ -56,7 +56,7 @@ python scripts/analyze.py contracts/sample_contract.txt --out data/report
 ```
 
 - **Reproduce the evaluation**: `python scripts/run_eval.py` (gold labels: `sample_data/labels.json`; report: `docs/eval_report.md`)
-- **Run the unit tests** (18 cases): `python -m unittest discover -s tests`
+- **Run the unit tests** (24 cases: 10 extraction + 8 report + 6 contract): `python -m unittest discover -s tests`
 
 ## Evaluation (real numbers, not fabricated; the samples are fictional contracts)
 

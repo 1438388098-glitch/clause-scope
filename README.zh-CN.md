@@ -55,7 +55,7 @@ python scripts/analyze.py contracts/sample_contract.txt --out data/report
 ```
 
 - **复现评测**：`python scripts/run_eval.py`（金标：`sample_data/labels.json`；报告：`docs/eval_report.md`）
-- **单元测试**（18 例）：`python -m unittest discover -s tests`
+- **单元测试**（24 例：抽取 10 + 报告 8 + 契约 6）：`python -m unittest discover -s tests`
 
 ## 验证（真实数字，非虚构；样本为虚构合同）
 
